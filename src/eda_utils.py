@@ -36,48 +36,43 @@ def portfolio_summary(df: pd.DataFrame) -> pd.DataFrame:
     Return a high-level portfolio metrics summary table.
     """
 
-    try:
-        required_cols = ["TotalPremium", "TotalClaims"]
+    required_cols = ["TotalPremium", "TotalClaims"]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing required columns: {missing}")
-
-        total_premiums = df["TotalPremium"].sum()
-        total_claims = df["TotalClaims"].sum()
-
-        if total_premiums == 0:
-            raise ZeroDivisionError(
-                "TotalPremium sum is zero. Cannot compute loss ratio."
-            )
-
-        loss_ratio = total_claims / total_premiums
-        claim_rate = (df["TotalClaims"] > 0).mean() * 100
-        avg_claim = df[df["TotalClaims"] > 0]["TotalClaims"].mean()
-
-        summary = pd.DataFrame({
-            "Metric": [
-                "Total Premiums Collected",
-                "Total Claims Paid",
-                "Overall Loss Ratio",
-                "Claim Frequency (Rate %)",
-                "Average Cost per Claim"
-            ],
-            "Value": [
-                f"{total_premiums:,.2f}",
-                f"{total_claims:,.2f}",
-                f"{loss_ratio:.4f}",
-                f"{claim_rate:.2f}%",
-                f"{avg_claim:,.2f}"
-            ]
-        })
-
-        return summary
-
-    except Exception as e:
-        print(f"Error generating portfolio summary: {e}")
+    if missing:
+        print(f"Missing columns: {missing}")
         return pd.DataFrame()
+
+    total_premiums = df["TotalPremium"].sum()
+    total_claims = df["TotalClaims"].sum()
+
+    if total_premiums == 0:
+        print("Cannot compute loss ratio because TotalPremium is zero.")
+        return pd.DataFrame()
+
+    loss_ratio = total_claims / total_premiums
+    claim_rate = (df["TotalClaims"] > 0).mean() * 100
+    avg_claim = df[df["TotalClaims"] > 0]["TotalClaims"].mean()
+
+    summary = pd.DataFrame({
+        "Metric": [
+            "Total Premiums Collected",
+            "Total Claims Paid",
+            "Overall Loss Ratio",
+            "Claim Frequency (Rate %)",
+            "Average Cost per Claim"
+        ],
+        "Value": [
+            f"{total_premiums:,.2f}",
+            f"{total_claims:,.2f}",
+            f"{loss_ratio:.4f}",
+            f"{claim_rate:.2f}%",
+            f"{avg_claim:,.2f}"
+        ]
+    })
+
+    return summary
 
 
 # ── 2. Data Summarization ─────────────────────────────────────────────────────
@@ -86,16 +81,15 @@ def summarize_data(df: pd.DataFrame) -> pd.DataFrame:
     Return descriptive statistics for all numerical columns.
     """
 
-    try:
-        summary = df.describe(include=[np.number]).T
-        summary["skewness"] = df.select_dtypes(include=[np.number]).skew()
-        summary["kurtosis"] = df.select_dtypes(include=[np.number]).kurt()
-
-        return summary
-
-    except Exception as e:
-        print(f"Error summarizing data: {e}")
+    if df.empty:
+        print("DataFrame is empty.")
         return pd.DataFrame()
+
+    summary = df.describe(include=[np.number]).T
+    summary["skewness"] = df.select_dtypes(include=[np.number]).skew()
+    summary["kurtosis"] = df.select_dtypes(include=[np.number]).kurt()
+
+    return summary
 
 
 def check_dtypes(df: pd.DataFrame) -> pd.DataFrame:
@@ -103,19 +97,15 @@ def check_dtypes(df: pd.DataFrame) -> pd.DataFrame:
     Return a summary of column data types and sample values.
     """
 
-    try:
-        if df.empty:
-            raise ValueError("DataFrame is empty.")
-
-        return pd.DataFrame({
-            "dtype": df.dtypes,
-            "sample_value": df.iloc[0],
-            "nunique": df.nunique()
-        })
-
-    except Exception as e:
-        print(f"Error checking data types: {e}")
+    if df.empty:
+        print("DataFrame is empty.")
         return pd.DataFrame()
+
+    return pd.DataFrame({
+        "dtype": df.dtypes,
+        "sample_value": df.iloc[0],
+        "nunique": df.nunique()
+    })
 
 
 # ── 3. Data Quality ───────────────────────────────────────────────────────────
@@ -124,20 +114,19 @@ def missing_value_report(df: pd.DataFrame) -> pd.DataFrame:
     Return a sorted report of missing values per column.
     """
 
-    try:
-        missing = df.isnull().sum()
-        missing = missing[missing > 0]
-
-        report = pd.DataFrame({
-            "missing_count": missing,
-            "missing_pct": (missing / len(df) * 100).round(2)
-        }).sort_values("missing_pct", ascending=False)
-
-        return report
-
-    except Exception as e:
-        print(f"Error generating missing value report: {e}")
+    if df.empty:
+        print("DataFrame is empty.")
         return pd.DataFrame()
+
+    missing = df.isnull().sum()
+    missing = missing[missing > 0]
+
+    report = pd.DataFrame({
+        "missing_count": missing,
+        "missing_pct": (missing / len(df) * 100).round(2)
+    }).sort_values("missing_pct", ascending=False)
+
+    return report
 
 
 # ── 4. Univariate Analysis ────────────────────────────────────────────────────
@@ -150,60 +139,57 @@ def plot_numerical_distributions(
     Plot histograms for numerical columns.
     """
 
-    try:
-        if not columns:
-            raise ValueError("No numerical columns provided.")
+    if not columns:
+        print("No numerical columns provided.")
+        return
 
-        nrows = -(-len(columns) // ncols)
+    nrows = -(-len(columns) // ncols)
 
-        fig, axes = plt.subplots(
-            nrows,
-            ncols,
-            figsize=(6 * ncols, 4 * nrows)
-        )
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(6 * ncols, 4 * nrows)
+    )
 
-        axes = axes.flatten()
+    axes = axes.flatten()
 
-        for i, col in enumerate(columns):
+    for i, col in enumerate(columns):
 
-            if col not in df.columns:
-                print(f"Skipping missing column: {col}")
-                continue
+        if col not in df.columns:
+            print(f"{col} column not found.")
+            continue
 
-            axes[i].hist(
-                df[col].dropna(),
-                bins=40,
-                color=PALETTE["primary"],
-                edgecolor="white",
-                alpha=0.85
-            )
-
-            axes[i].set_title(
-                col,
-                fontsize=11,
-                fontweight="bold",
-                color=PALETTE["primary"]
-            )
-
-            axes[i].set_xlabel(col)
-            axes[i].set_ylabel("Frequency")
-
-        for j in range(i + 1, len(axes)):
-            axes[j].set_visible(False)
-
-        plt.suptitle(
-            "Numerical Feature Distributions",
-            fontsize=14,
-            fontweight="bold",
+        axes[i].hist(
+            df[col].dropna(),
+            bins=40,
             color=PALETTE["primary"],
-            y=1.01
+            edgecolor="white",
+            alpha=0.85
         )
 
-        plt.tight_layout()
-        plt.show()
+        axes[i].set_title(
+            col,
+            fontsize=11,
+            fontweight="bold",
+            color=PALETTE["primary"]
+        )
 
-    except Exception as e:
-        print(f"Error plotting numerical distributions: {e}")
+        axes[i].set_xlabel(col)
+        axes[i].set_ylabel("Frequency")
+
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.suptitle(
+        "Numerical Feature Distributions",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["primary"],
+        y=1.01
+    )
+
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_categorical_distributions(
@@ -212,111 +198,105 @@ def plot_categorical_distributions(
     ncols: int = 2
 ) -> None:
     """
-    Plot bar charts for categorical columns (top 10 categories).
+    Plot bar charts for categorical columns.
     """
 
-    try:
-        if not columns:
-            raise ValueError("No categorical columns provided.")
+    if not columns:
+        print("No categorical columns provided.")
+        return
 
-        nrows = -(-len(columns) // ncols)
+    nrows = -(-len(columns) // ncols)
 
-        fig, axes = plt.subplots(
-            nrows,
-            ncols,
-            figsize=(8 * ncols, 4 * nrows)
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(8 * ncols, 4 * nrows)
+    )
+
+    axes = axes.flatten()
+
+    for i, col in enumerate(columns):
+
+        if col not in df.columns:
+            print(f"{col} column not found.")
+            continue
+
+        counts = df[col].value_counts().head(10)
+
+        axes[i].barh(
+            counts.index.astype(str),
+            counts.values,
+            color=PALETTE["secondary"],
+            edgecolor="white"
         )
 
-        axes = axes.flatten()
+        axes[i].yaxis.set_tick_params(pad=5)
 
-        for i, col in enumerate(columns):
-
-            if col not in df.columns:
-                print(f"Skipping missing column: {col}")
-                continue
-
-            counts = df[col].value_counts().head(10)
-
-            axes[i].barh(
-                counts.index.astype(str),
-                counts.values,
-                color=PALETTE["secondary"],
-                edgecolor="white"
-            )
-
-            axes[i].yaxis.set_tick_params(pad=5)
-
-            axes[i].set_title(
-                col,
-                fontsize=11,
-                fontweight="bold",
-                color=PALETTE["primary"]
-            )
-
-            axes[i].set_xlabel("Count")
-            axes[i].invert_yaxis()
-
-        for j in range(i + 1, len(axes)):
-            axes[j].set_visible(False)
-
-        plt.suptitle(
-            "Categorical Feature Distributions",
-            fontsize=14,
+        axes[i].set_title(
+            col,
+            fontsize=11,
             fontweight="bold",
-            color=PALETTE["primary"],
-            y=1.01
+            color=PALETTE["primary"]
         )
 
-        plt.tight_layout()
-        plt.subplots_adjust(left=0.30)
-        plt.show()
+        axes[i].set_xlabel("Count")
+        axes[i].invert_yaxis()
 
-    except Exception as e:
-        print(f"Error plotting categorical distributions: {e}")
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.suptitle(
+        "Categorical Feature Distributions",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["primary"],
+        y=1.01
+    )
+
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.30)
+    plt.show()
 
 
 # ── 5. Bivariate / Multivariate Analysis ─────────────────────────────────────
 def plot_correlation_matrix(df: pd.DataFrame, columns: list) -> None:
     """
-    Plot a heatmap of the correlation matrix for selected columns.
+    Plot a heatmap of the correlation matrix.
     """
 
-    try:
-        missing = [col for col in columns if col not in df.columns]
+    missing = [col for col in columns if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
 
-        corr = df[columns].corr()
+    corr = df[columns].corr()
 
-        mask = np.triu(np.ones_like(corr, dtype=bool))
+    mask = np.triu(np.ones_like(corr, dtype=bool))
 
-        fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(10, 7))
 
-        sns.heatmap(
-            corr,
-            mask=mask,
-            annot=True,
-            fmt=".2f",
-            cmap="coolwarm",
-            center=0,
-            linewidths=0.5,
-            ax=ax,
-            cbar_kws={"shrink": 0.8}
-        )
+    sns.heatmap(
+        corr,
+        mask=mask,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        center=0,
+        linewidths=0.5,
+        ax=ax,
+        cbar_kws={"shrink": 0.8}
+    )
 
-        ax.set_title(
-            "Correlation Matrix",
-            fontsize=14,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
+    ax.set_title(
+        "Correlation Matrix",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
 
-        plt.tight_layout()
-        plt.show()
-
-    except Exception as e:
-        print(f"Error plotting correlation matrix: {e}")
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_premium_vs_claims(
@@ -327,101 +307,19 @@ def plot_premium_vs_claims(
     Scatter plot of TotalPremium vs TotalClaims.
     """
 
-    try:
-        required_cols = ["TotalPremium", "TotalClaims"]
+    required_cols = ["TotalPremium", "TotalClaims"]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing required columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
 
-        fig, ax = plt.subplots(figsize=(9, 6))
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-        if hue_col and hue_col in df.columns:
+    if hue_col and hue_col in df.columns:
 
-            categories = df[hue_col].dropna().unique()[:8]
-
-            colors = [
-                PALETTE["primary"],
-                PALETTE["secondary"],
-                PALETTE["accent"],
-                PALETTE["highlight"],
-                "#2a9d8f",
-                "#e9c46a",
-                "#f4a261",
-                "#264653"
-            ]
-
-            for cat, color in zip(categories, colors):
-
-                subset = df[df[hue_col] == cat]
-
-                ax.scatter(
-                    subset["TotalPremium"],
-                    subset["TotalClaims"],
-                    label=str(cat),
-                    alpha=0.5,
-                    s=15,
-                    color=color
-                )
-
-            ax.legend(
-                title=hue_col,
-                bbox_to_anchor=(1.01, 1),
-                loc="upper left",
-                fontsize=8
-            )
-
-        else:
-            ax.scatter(
-                df["TotalPremium"],
-                df["TotalClaims"],
-                alpha=0.4,
-                s=15,
-                color=PALETTE["primary"]
-            )
-
-        ax.set_xlabel("Total Premium", fontsize=11)
-        ax.set_ylabel("Total Claims", fontsize=11)
-
-        ax.set_title(
-            "Total Premium vs Total Claims",
-            fontsize=13,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
-
-        plt.tight_layout()
-        plt.show()
-
-    except Exception as e:
-        print(f"Error plotting premium vs claims: {e}")
-
-
-def plot_premium_vs_claims_by_postalcode(df: pd.DataFrame) -> None:
-    """
-    Scatter plot of TotalPremium vs TotalClaims grouped by PostalCode.
-    """
-
-    try:
-        required_cols = [
-            "PostalCode",
-            "TotalPremium",
-            "TotalClaims"
-        ]
-
-        missing = [col for col in required_cols if col not in df.columns]
-
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
-
-        top_codes = df["PostalCode"].value_counts().head(8).index
-
-        filtered = df[df["PostalCode"].isin(top_codes)].copy()
-
-        filtered["PostalCode"] = filtered["PostalCode"].astype(str)
-
-        fig, ax = plt.subplots(figsize=(10, 6))
+        categories = df[hue_col].dropna().unique()[:8]
 
         colors = [
             PALETTE["primary"],
@@ -434,41 +332,119 @@ def plot_premium_vs_claims_by_postalcode(df: pd.DataFrame) -> None:
             "#264653"
         ]
 
-        for code, color in zip(top_codes.astype(str), colors):
+        for cat, color in zip(categories, colors):
 
-            subset = filtered[filtered["PostalCode"] == code]
+            subset = df[df[hue_col] == cat]
 
             ax.scatter(
                 subset["TotalPremium"],
                 subset["TotalClaims"],
-                label=code,
+                label=str(cat),
                 alpha=0.5,
                 s=15,
                 color=color
             )
 
-        ax.set_xlabel("Total Premium", fontsize=11)
-        ax.set_ylabel("Total Claims", fontsize=11)
-
-        ax.set_title(
-            "Total Premium vs Total Claims by PostalCode",
-            fontsize=13,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
-
         ax.legend(
-            title="PostalCode",
+            title=hue_col,
             bbox_to_anchor=(1.01, 1),
             loc="upper left",
             fontsize=8
         )
 
-        plt.tight_layout()
-        plt.show()
+    else:
+        ax.scatter(
+            df["TotalPremium"],
+            df["TotalClaims"],
+            alpha=0.4,
+            s=15,
+            color=PALETTE["primary"]
+        )
 
-    except Exception as e:
-        print(f"Error plotting postal code analysis: {e}")
+    ax.set_xlabel("Total Premium", fontsize=11)
+
+    ax.set_ylabel("Total Claims", fontsize=11)
+
+    ax.set_title(
+        "Total Premium vs Total Claims",
+        fontsize=13,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_premium_vs_claims_by_postalcode(df: pd.DataFrame) -> None:
+    """
+    Scatter plot grouped by PostalCode.
+    """
+
+    required_cols = [
+        "PostalCode",
+        "TotalPremium",
+        "TotalClaims"
+    ]
+
+    missing = [col for col in required_cols if col not in df.columns]
+
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
+
+    top_codes = df["PostalCode"].value_counts().head(8).index
+
+    filtered = df[df["PostalCode"].isin(top_codes)].copy()
+
+    filtered["PostalCode"] = filtered["PostalCode"].astype(str)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    colors = [
+        PALETTE["primary"],
+        PALETTE["secondary"],
+        PALETTE["accent"],
+        PALETTE["highlight"],
+        "#2a9d8f",
+        "#e9c46a",
+        "#f4a261",
+        "#264653"
+    ]
+
+    for code, color in zip(top_codes.astype(str), colors):
+
+        subset = filtered[filtered["PostalCode"] == code]
+
+        ax.scatter(
+            subset["TotalPremium"],
+            subset["TotalClaims"],
+            label=code,
+            alpha=0.5,
+            s=15,
+            color=color
+        )
+
+    ax.set_xlabel("Total Premium", fontsize=11)
+
+    ax.set_ylabel("Total Claims", fontsize=11)
+
+    ax.set_title(
+        "Total Premium vs Total Claims by PostalCode",
+        fontsize=13,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
+
+    ax.legend(
+        title="PostalCode",
+        bbox_to_anchor=(1.01, 1),
+        loc="upper left",
+        fontsize=8
+    )
+
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_claim_rate_by_group(
@@ -479,49 +455,47 @@ def plot_claim_rate_by_group(
     Plot claim rate by a grouping column.
     """
 
-    try:
-        required_cols = [group_col, "TotalClaims"]
+    required_cols = [group_col, "TotalClaims"]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
 
-        claim_rate = (
-            df.groupby(group_col)
-            .apply(lambda x: (x["TotalClaims"] > 0).mean() * 100)
-            .rename("ClaimRate")
-            .sort_values(ascending=False)
-            .reset_index()
-        )
+    claim_rate = (
+        df.groupby(group_col)
+        .apply(lambda x: (x["TotalClaims"] > 0).mean() * 100)
+        .rename("ClaimRate")
+        .sort_values(ascending=False)
+        .reset_index()
+    )
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
 
-        ax.barh(
-            claim_rate[group_col].astype(str),
-            claim_rate["ClaimRate"],
-            color=PALETTE["accent"],
-            edgecolor="white"
-        )
+    ax.barh(
+        claim_rate[group_col].astype(str),
+        claim_rate["ClaimRate"],
+        color=PALETTE["accent"],
+        edgecolor="white"
+    )
 
-        ax.yaxis.set_tick_params(pad=5)
-        ax.invert_yaxis()
+    ax.yaxis.set_tick_params(pad=5)
 
-        ax.set_xlabel("Claim Rate (%)", fontsize=11)
+    ax.invert_yaxis()
 
-        ax.set_title(
-            f"Claim Rate (%) by {group_col}",
-            fontsize=13,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
+    ax.set_xlabel("Claim Rate (%)", fontsize=11)
 
-        plt.tight_layout()
-        plt.subplots_adjust(left=0.25)
-        plt.show()
+    ax.set_title(
+        f"Claim Rate (%) by {group_col}",
+        fontsize=13,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
 
-    except Exception as e:
-        print(f"Error plotting claim rate by group: {e}")
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.25)
+    plt.show()
 
 
 # ── 6. Geographic Trends ──────────────────────────────────────────────────────
@@ -530,71 +504,68 @@ def plot_province_analysis(df: pd.DataFrame) -> None:
     Compare average TotalPremium and TotalClaims by Province.
     """
 
-    try:
-        required_cols = [
-            "Province",
-            "TotalPremium",
-            "TotalClaims"
-        ]
+    required_cols = [
+        "Province",
+        "TotalPremium",
+        "TotalClaims"
+    ]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
 
-        province_stats = (
-            df.groupby("Province")[["TotalPremium", "TotalClaims"]]
-            .mean()
-            .sort_values("TotalPremium", ascending=False)
-        )
+    province_stats = (
+        df.groupby("Province")[["TotalPremium", "TotalClaims"]]
+        .mean()
+        .sort_values("TotalPremium", ascending=False)
+    )
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
 
-        x = np.arange(len(province_stats))
-        width = 0.35
+    x = np.arange(len(province_stats))
+    width = 0.35
 
-        ax.bar(
-            x - width / 2,
-            province_stats["TotalPremium"],
-            width,
-            label="Avg Premium",
-            color=PALETTE["primary"],
-            edgecolor="white"
-        )
+    ax.bar(
+        x - width / 2,
+        province_stats["TotalPremium"],
+        width,
+        label="Avg Premium",
+        color=PALETTE["primary"],
+        edgecolor="white"
+    )
 
-        ax.bar(
-            x + width / 2,
-            province_stats["TotalClaims"],
-            width,
-            label="Avg Claims",
-            color=PALETTE["accent"],
-            edgecolor="white"
-        )
+    ax.bar(
+        x + width / 2,
+        province_stats["TotalClaims"],
+        width,
+        label="Avg Claims",
+        color=PALETTE["accent"],
+        edgecolor="white"
+    )
 
-        ax.set_xticks(x)
+    ax.set_xticks(x)
 
-        ax.set_xticklabels(
-            province_stats.index,
-            rotation=30,
-            ha="right"
-        )
+    ax.set_xticklabels(
+        province_stats.index,
+        rotation=30,
+        ha="right"
+    )
 
-        ax.set_title(
-            "Average Premium & Claims by Province",
-            fontsize=13,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
+    ax.set_title(
+        "Average Premium & Claims by Province",
+        fontsize=13,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
 
-        ax.set_ylabel("Amount")
-        ax.legend()
+    ax.set_ylabel("Amount")
+    ax.legend()
 
-        plt.tight_layout()
-        plt.subplots_adjust(bottom=0.25)
-        plt.show()
-
-    except Exception as e:
-        print(f"Error plotting province analysis: {e}")
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.25)
+    plt.show()
 
 
 # ── 7. Outlier Detection ──────────────────────────────────────────────────────
@@ -607,75 +578,72 @@ def plot_boxplots(
     Plot box plots for numerical columns.
     """
 
-    try:
-        if not columns:
-            raise ValueError("No columns provided for boxplots.")
+    if not columns:
+        print("No columns provided.")
+        return
 
-        nrows = -(-len(columns) // ncols)
+    nrows = -(-len(columns) // ncols)
 
-        fig, axes = plt.subplots(
-            nrows,
-            ncols,
-            figsize=(6 * ncols, 4 * nrows)
-        )
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(6 * ncols, 4 * nrows)
+    )
 
-        axes = axes.flatten()
+    axes = axes.flatten()
 
-        for i, col in enumerate(columns):
+    for i, col in enumerate(columns):
 
-            if col not in df.columns:
-                print(f"Skipping missing column: {col}")
-                continue
+        if col not in df.columns:
+            print(f"{col} column not found.")
+            continue
 
-            axes[i].boxplot(
-                df[col].dropna(),
-                patch_artist=True,
-                boxprops=dict(
-                    facecolor=PALETTE["primary"],
-                    color="white"
-                ),
-                medianprops=dict(
-                    color="white",
-                    linewidth=2
-                ),
-                whiskerprops=dict(
-                    color=PALETTE["primary"]
-                ),
-                capprops=dict(
-                    color=PALETTE["primary"]
-                ),
-                flierprops=dict(
-                    marker="o",
-                    color=PALETTE["accent"],
-                    alpha=0.4,
-                    markersize=3
-                )
-            )
-
-            axes[i].set_title(
-                col,
-                fontsize=11,
-                fontweight="bold",
+        axes[i].boxplot(
+            df[col].dropna(),
+            patch_artist=True,
+            boxprops=dict(
+                facecolor=PALETTE["primary"],
+                color="white"
+            ),
+            medianprops=dict(
+                color="white",
+                linewidth=2
+            ),
+            whiskerprops=dict(
                 color=PALETTE["primary"]
+            ),
+            capprops=dict(
+                color=PALETTE["primary"]
+            ),
+            flierprops=dict(
+                marker="o",
+                color=PALETTE["accent"],
+                alpha=0.4,
+                markersize=3
             )
-
-        for j in range(i + 1, len(axes)):
-            axes[j].set_visible(False)
-
-        plt.suptitle(
-            "Outlier Detection — Box Plots",
-            fontsize=14,
-            fontweight="bold",
-            color=PALETTE["primary"],
-            y=1.01
         )
 
-        plt.tight_layout()
-        plt.subplots_adjust(left=0.15)
-        plt.show()
+        axes[i].set_title(
+            col,
+            fontsize=11,
+            fontweight="bold",
+            color=PALETTE["primary"]
+        )
 
-    except Exception as e:
-        print(f"Error generating boxplots: {e}")
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.suptitle(
+        "Outlier Detection — Box Plots",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["primary"],
+        y=1.01
+    )
+
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.15)
+    plt.show()
 
 
 # ── 8. Loss Ratio ─────────────────────────────────────────────────────────────
@@ -687,40 +655,35 @@ def compute_loss_ratio(
     Compute Loss Ratio = TotalClaims / TotalPremium.
     """
 
-    try:
-        required_cols = ["TotalClaims", "TotalPremium"]
+    required_cols = ["TotalClaims", "TotalPremium"]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return None
 
-        if group_col:
+    if group_col:
 
-            if group_col not in df.columns:
-                raise ValueError(
-                    f"{group_col} column not found."
-                )
-
-            return (
-                df.groupby(group_col)
-                .apply(
-                    lambda x:
-                    x["TotalClaims"].sum() /
-                    x["TotalPremium"].sum()
-                )
-                .rename("LossRatio")
-                .sort_values(ascending=False)
-            )
+        if group_col not in df.columns:
+            print(f"{group_col} column not found.")
+            return None
 
         return (
-            df["TotalClaims"].sum() /
-            df["TotalPremium"].sum()
+            df.groupby(group_col)
+            .apply(
+                lambda x:
+                x["TotalClaims"].sum() /
+                x["TotalPremium"].sum()
+            )
+            .rename("LossRatio")
+            .sort_values(ascending=False)
         )
 
-    except Exception as e:
-        print(f"Error computing loss ratio: {e}")
-        return None
+    return (
+        df["TotalClaims"].sum() /
+        df["TotalPremium"].sum()
+    )
 
 
 # ── 9. Vehicle Make Analysis ──────────────────────────────────────────────────
@@ -729,109 +692,86 @@ def plot_vehicle_makes_by_claims(
     top_n: int = 10
 ) -> None:
     """
-    Plot top vehicle makes by average claim amount.
+    Plot vehicle makes by average claim amount.
     """
 
-    try:
-        required_cols = ["make", "TotalClaims"]
+    required_cols = ["make", "TotalClaims"]
 
-        missing = [col for col in required_cols if col not in df.columns]
+    missing = [col for col in required_cols if col not in df.columns]
 
-        if missing:
-            raise ValueError(f"Missing columns: {missing}")
+    if missing:
+        print(f"Missing columns: {missing}")
+        return
 
-        make_claims = (
-            df.groupby("make")["TotalClaims"]
-            .mean()
-            .sort_values(ascending=False)
-        )
+    make_claims = (
+        df.groupby("make")["TotalClaims"]
+        .mean()
+        .sort_values(ascending=False)
+    )
 
-        highest = make_claims.head(top_n)
+    highest = make_claims.head(top_n)
 
-        lowest = (
-            make_claims.tail(top_n)
-            .sort_values(ascending=True)
-        )
+    lowest = (
+        make_claims.tail(top_n)
+        .sort_values(ascending=True)
+    )
 
-        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
-        axes[0].barh(
-            highest.index,
-            highest.values,
-            color=PALETTE["accent"],
-            edgecolor="white"
-        )
+    axes[0].barh(
+        highest.index,
+        highest.values,
+        color=PALETTE["accent"],
+        edgecolor="white"
+    )
 
-        axes[0].invert_yaxis()
+    axes[0].invert_yaxis()
 
-        axes[0].yaxis.set_tick_params(pad=5)
+    axes[0].set_title(
+        f"Top {top_n} Makes — Highest Avg Claims",
+        fontsize=12,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
 
-        axes[0].set_title(
-            f"Top {top_n} Makes — Highest Avg Claims",
-            fontsize=12,
-            fontweight="bold",
+    axes[0].set_xlabel("Average TotalClaims")
+
+    axes[1].barh(
+        lowest.index,
+        lowest.values.clip(min=0.001),
+        color=PALETTE["secondary"],
+        edgecolor="white"
+    )
+
+    axes[1].invert_yaxis()
+
+    axes[1].set_title(
+        f"Top {top_n} Makes — Lowest Avg Claims",
+        fontsize=12,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
+
+    axes[1].set_xlabel("Average TotalClaims")
+
+    for idx, val in enumerate(lowest.values):
+
+        axes[1].text(
+            0.0005,
+            idx,
+            f"{val:.4f}",
+            va="center",
+            fontsize=8,
             color=PALETTE["primary"]
         )
 
-        axes[0].set_xlabel("Average TotalClaims")
+    plt.suptitle(
+        "Vehicle Makes by Average Claim Amount",
+        fontsize=14,
+        fontweight="bold",
+        color=PALETTE["primary"]
+    )
 
-        axes[0].set_xlim(0, highest.values.max() * 1.2)
-
-        axes[1].barh(
-            lowest.index,
-            lowest.values.clip(min=0.001),
-            color=PALETTE["secondary"],
-            edgecolor="white"
-        )
-
-        axes[1].invert_yaxis()
-
-        axes[1].yaxis.set_tick_params(pad=5)
-
-        axes[1].set_title(
-            f"Top {top_n} Makes — Lowest Avg Claims",
-            fontsize=12,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
-
-        axes[1].set_xlabel("Average TotalClaims")
-
-        axes[1].set_xlim(0, 0.015)
-
-        for idx, (label, val) in enumerate(
-            zip(lowest.index, lowest.values)
-        ):
-
-            axes[1].text(
-                0.0005,
-                idx,
-                f"{val:.4f}",
-                va="center",
-                fontsize=8,
-                color=PALETTE["primary"]
-            )
-
-        plt.suptitle(
-            "Vehicle Makes by Average Claim Amount",
-            fontsize=14,
-            fontweight="bold",
-            color=PALETTE["primary"]
-        )
-
-        plt.tight_layout()
-        plt.subplots_adjust(left=0.15, wspace=0.4)
-        plt.show()
-
-    except Exception as e:
-        print(f"Error plotting vehicle make analysis: {e}")
-
-
-# ── Main Execution Safety ─────────────────────────────────────────────────────
-if __name__ == "__main__":
-
-    try:
-        print("EDA utility module executed successfully.")
-
-    except Exception as e:
-        print(f"Application error: {e}")
+    plt.tight_layout()
+    plt.subplots_adjust(left=0.15, wspace=0.4)
+    plt.show()
