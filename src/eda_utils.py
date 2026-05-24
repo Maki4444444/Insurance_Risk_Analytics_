@@ -673,16 +673,16 @@ def compute_loss_ratio(
             df.groupby(group_col)
             .apply(
                 lambda x:
-                x["TotalClaims"].sum() /
-                x["TotalPremium"].sum()
+                x["TotalClaims"].sum()
+                / x["TotalPremium"].sum()
             )
             .rename("LossRatio")
             .sort_values(ascending=False)
         )
 
     return (
-        df["TotalClaims"].sum() /
-        df["TotalPremium"].sum()
+        df["TotalClaims"].sum()
+        / df["TotalPremium"].sum()
     )
 
 
