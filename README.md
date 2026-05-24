@@ -110,6 +110,39 @@ push and pull request, the pipeline automatically:
 Pipeline status is visible under the **Actions** tab on GitHub.
 
 ---
+### Data Version Control (DVC)
+
+This project uses DVC to version and reproduce the data pipeline,
+ensuring every analysis result is reproducible and auditable.
+
+#### Reproduce the pipeline
+
+**1. Pull the data from remote storage:**
+```bash
+dvc pull
+```
+
+**2. Data versions tracked:**
+
+| Version | File | Description |
+|---|---|---|
+| v1 | `data/raw/MachineLearningRating_v3.txt` | Original raw dataset (503MB) |
+| v2 | `data/processed/insurance_data_cleaned.csv` | Cleaned dataset after missing value handling |
+
+**3. Switch between versions:**
+```bash
+git checkout <commit-hash>
+dvc checkout
+```
+### Error Handling
+
+The project implements defensive programming practices including:
+
+- File existence validation
+- CSV parsing exception handling
+- Missing column checks
+- Visualization error handling
+- Safe execution wrappers for analysis scripts
 
 ### Key Findings (Task 1: EDA)
 
