@@ -1,4 +1,4 @@
-## Insurance Risk Analytics
+# Insurance Risk Analytics
 
 A data-driven analytics project analyzing car insurance policy, client, vehicle,
 and claim data for **ACIS (African Car Insurance Solutions)** covering
@@ -6,11 +6,11 @@ February 2014 to August 2015.
 
 ---
 
-### Business Objective
+## Business Objective
 
 ACIS is reviewing its historical data to optimize its marketing strategy and
-identify "low-risk" targets for premium reduction opportunities. This project
-delivers insights across four analytical stages:
+identify low-risk customer segments for premium reduction opportunities.
+This project delivers insights across four analytical stages:
 
 - **Descriptive** What happened? (EDA, loss ratios, claim distributions)
 - **Diagnostic** Why did it happen? (risk drivers, geographic trends)
@@ -19,35 +19,40 @@ delivers insights across four analytical stages:
 
 ---
 
-### Project Structure
+## Project Structure
+
+```text
 insurance-risk-analytics/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # GitHub Actions CI pipeline
+│       └── ci.yml
 ├── data/
-│   └── raw/                    # Raw dataset (tracked by DVC, not Git)
+│   ├── raw/
+│   └── processed/
 ├── notebooks/
-│   ├── 01_eda.ipynb            # Exploratory Data Analysis
+│   ├── 01_eda.ipynb
 │   ├── 02_hypothesis_testing.ipynb
 │   └── 03_modeling.ipynb
 ├── src/
-│   ├── init.py
-│   ├── data_loader.py          # Data loading utilities
-│   ├── eda_utils.py            # EDA helper functions and plotting
-│   ├── hypothesis_tests.py     # Statistical testing functions
-│   └── modeling.py             # ML modeling functions
+│   ├── __init__.py
+│   ├── data_loader.py
+│   ├── eda_utils.py
+│   ├── hypothesis_tests.py
+│   └── modeling.py
 ├── reports/
-│   └── final_report.md         # Final business report
+│   └── final_report.md
 ├── tests/
-│   ├── init.py
+│   ├── __init__.py
 │   └── test_placeholder.py
-├── .dvc/                       # DVC configuration
-├── dvc.yaml                    # DVC pipeline definition
-├── requirements.txt            # Python dependencies
+├── .dvc/
+├── dvc.yaml
+├── requirements.txt
 └── README.md
+```
+
 ---
 
-### Dataset
+## Dataset
 
 The dataset contains car insurance policy, client, vehicle, and claim
 information with the following key groups:
@@ -61,80 +66,108 @@ information with the following key groups:
 | Plan | SumInsured, TotalPremium, CoverType |
 | Claims | TotalClaims |
 
-**Key derived metrics:**
+### Key Derived Metrics
+
 - **Loss Ratio** = TotalClaims / TotalPremium
 - **Margin** = TotalPremium − TotalClaims
-- **Claim Rate** = % of policies with at least one claim
+- **Claim Rate** = Percentage of policies with at least one claim
 
 ---
 
-### Setup & Installation
+## Setup & Installation
 
-#### 1. Clone the repository
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/insurance_risk_analytics_.git
-cd insurance_risk_analytics_
+git clone https://github.com/Maki4444444/Insurance_Risk_Analytics_.git
+cd Insurance_Risk_Analytics_
 ```
 
-#### 2. Create and activate a virtual environment
+### 2. Create and Activate a Virtual Environment
+
+#### Windows (PowerShell)
+
 ```powershell
-# Windows (PowerShell)
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-#### 3. Install dependencies
+### 3. Install Dependencies
+
 ```powershell
 pip install -r requirements.txt
 ```
 
-#### 4. Add the dataset
-Place the raw dataset in `data/raw/`:
-data/raw/MachineLearningRating_v3.txt
+### 4. Add the Dataset
 
-#### 5. Run the EDA notebook
+Place the raw dataset inside:
+
+```text
+data/raw/MachineLearningRating_v3.txt
+```
+
+### 5. Run the Notebooks
+
+#### Exploratory Data Analysis
+
 ```powershell
 jupyter notebook notebooks/01_eda.ipynb
 ```
 
+#### Hypothesis Testing
+
+```powershell
+jupyter notebook notebooks/02_hypothesis_testing.ipynb
+```
+
+#### Predictive Modeling
+
+```powershell
+jupyter notebook notebooks/03_modeling.ipynb
+```
+
 ---
 
-### CI Pipeline
+## CI Pipeline
 
-This project uses **GitHub Actions** for continuous integration. On every
-push and pull request, the pipeline automatically:
+This project uses GitHub Actions for continuous integration.
 
-- Lints the code with `flake8`
-- Runs tests with `pytest`
+On every push and pull request, the pipeline automatically:
 
-Pipeline status is visible under the **Actions** tab on GitHub.
+- Lints code using `flake8`
+- Runs tests using `pytest`
+
+Pipeline status is available in the GitHub **Actions** tab.
 
 ---
-### Data Version Control (DVC)
 
-This project uses DVC to version and reproduce the data pipeline,
-ensuring every analysis result is reproducible and auditable.
+## Data Version Control (DVC)
 
-#### Reproduce the pipeline
+This project uses DVC to version datasets and ensure full reproducibility.
 
-**1. Pull the data from remote storage:**
+### Pull the Dataset
+
 ```bash
 dvc pull
 ```
 
-**2. Data versions tracked:**
+### Data Versions Tracked
 
 | Version | File | Description |
 |---|---|---|
-| v1 | `data/raw/MachineLearningRating_v3.txt` | Original raw dataset (503MB) |
-| v2 | `data/processed/insurance_data_cleaned.csv` | Cleaned dataset after missing value handling |
+| v1 | `data/raw/MachineLearningRating_v3.txt` | Original raw dataset |
+| v2 | `data/processed/insurance_data_cleaned.csv` | Cleaned dataset after preprocessing |
 
-**3. Switch between versions:**
+### Switch Between Dataset Versions
+
 ```bash
 git checkout <commit-hash>
 dvc checkout
 ```
-### Error Handling
+
+---
+
+## Error Handling
 
 The project implements defensive programming practices including:
 
@@ -144,39 +177,345 @@ The project implements defensive programming practices including:
 - Visualization error handling
 - Safe execution wrappers for analysis scripts
 
-### Key Findings (Task 1: EDA)
+---
+
+# Task 1: Exploratory Data Analysis (EDA)
+
+## Objective
+
+Perform exploratory analysis to understand portfolio profitability,
+claim behavior, customer segmentation, and geographic risk trends.
+
+---
+
+## Key Findings (Task 1)
 
 | Question | Finding |
 |---|---|
-| **Overall Loss Ratio** | 1.0477 — portfolio is currently unprofitable |
-| **Highest risk provinces** | Gauteng (1.22), KwaZulu-Natal (1.08), Western Cape (1.06) |
-| **Lowest risk provinces** | Northern Cape (0.28), Eastern Cape (0.63), Limpopo (0.66) |
-| **Highest risk vehicle type** | Heavy Commercial (loss ratio 1.63) |
-| **Most profitable vehicle type** | Bus (0.14), Light Commercial (0.23) |
-| **Highest avg claim make** | Suzuki (~420), JMC (~190), Hyundai (~165) |
-| **Gender with lowest loss ratio** | Female (0.82) most profitable segment |
-| **Temporal trend** | Claims exceeded premiums consistently from Oct 2014 onwards |
+| Overall Loss Ratio | 1.0477 — portfolio is currently unprofitable |
+| Highest risk provinces | Gauteng (1.22), KwaZulu-Natal (1.08), Western Cape (1.06) |
+| Lowest risk provinces | Northern Cape (0.28), Eastern Cape (0.63), Limpopo (0.66) |
+| Highest risk vehicle type | Heavy Commercial (loss ratio 1.63) |
+| Most profitable vehicle type | Bus (0.14), Light Commercial (0.23) |
+| Highest avg claim make | Suzuki (~420), JMC (~190), Hyundai (~165) |
+| Gender with lowest loss ratio | Female (0.82) most profitable segment |
+| Temporal trend | Claims exceeded premiums consistently from Oct 2014 onwards |
 
 ---
 
-### Strategic Recommendations
+## Strategic Recommendations (EDA)
 
-- **Gauteng, KwaZulu-Natal, Western Cape** require immediate premium repricing
-- **Heavy Commercial vehicles** premiums should be reviewed and risk controls strengthened
-- **Suzuki and JMC** underwriting guidelines should be reviewed
-- **Northern Cape and Light Commercial** are ideal targets for customer acquisition
-- **Female policyholders** are a strong segment for loyalty and discount programs
+- Reprice high-risk provinces immediately
+- Review underwriting for Heavy Commercial vehicles
+- Target profitable customer segments for acquisition
+- Expand retention strategies for low-risk policyholders
 
 ---
 
-### Branch Strategy
+# Task 2: Data Version Control (DVC)
+
+## Objective
+
+Implement reproducible data pipelines using DVC for:
+
+- Dataset versioning
+- Pipeline reproducibility
+- Auditability
+- Collaboration
+
+---
+
+## DVC Workflow
+
+### Track Dataset
+
+```bash
+dvc add data/raw/MachineLearningRating_v3.txt
+```
+
+### Push Dataset to Remote Storage
+
+```bash
+dvc push
+```
+
+### Reproduce Pipeline
+
+```bash
+dvc repro
+```
+
+---
+
+# Task 3: A/B Hypothesis Testing
+
+## Objective
+
+Evaluate whether statistically significant differences exist between
+customer groups, vehicle categories, and geographic regions.
+
+The analysis supports pricing optimization and underwriting decisions.
+
+---
+
+## Statistical Tests Performed
+
+| Test | Purpose |
+|---|---|
+| Province vs Claim Frequency | Compare claim occurrence by region |
+| Gender vs Claim Frequency | Evaluate gender-based differences |
+| Vehicle Type vs Loss Ratio | Compare vehicle risk categories |
+| Postal Code vs Severity | Evaluate geographic severity patterns |
+| Margin Analysis | Compare profitability between segments |
+
+---
+
+## Methodology
+
+The hypothesis testing workflow includes:
+
+- Null and alternative hypothesis formulation
+- Statistical significance testing
+- P-value interpretation
+- Confidence interval analysis
+- Group mean comparison
+
+### Techniques Used
+
+- Independent t-tests
+- Chi-square tests
+- Loss ratio analysis
+- Group comparison statistics
+
+---
+
+## Key Findings (Task 3)
+
+| Hypothesis | Result |
+|---|---|
+| Claim frequency differs by province | Confirmed |
+| Heavy Commercial vehicles are riskier | Confirmed |
+| Geographic regions show distinct risk profiles | Confirmed |
+| Gender impact exists but is relatively weak | Observed |
+| Some low-risk segments appear overpriced | Likely |
+
+---
+
+## Business Impact (Task 3)
+
+The hypothesis testing phase provides statistical evidence for:
+
+- Risk-based pricing adjustments
+- Province-specific premium strategies
+- Vehicle-category underwriting improvements
+- Better actuarial segmentation
+- More targeted marketing campaigns
+
+---
+
+# Task 4: Predictive Modeling
+
+## Objective
+
+Develop predictive machine learning models for:
+
+1. Claim Probability Prediction (Classification)
+2. Claim Severity Prediction (Regression)
+
+These models support expected-loss pricing and portfolio risk management.
+
+---
+
+## Feature Engineering
+
+The modeling pipeline introduced several engineered features:
+
+| Feature | Description |
+|---|---|
+| VehicleAge | Derived from registration year |
+| Margin | Premium minus claims |
+| HasClaim | Binary claim indicator |
+| PremiumToSumInsuredRatio | Relative premium intensity |
+
+---
+
+## Data Preparation
+
+### Cleaning & Preprocessing
+
+- Missing value imputation
+- Categorical encoding
+- Numeric feature selection
+- Outlier handling
+- Log transformation for severity modeling
+
+### Final Dataset
+
+| Metric | Value |
+|---|---|
+| Total rows | 1,000,098 |
+| Final features | 36 |
+| Remaining null values | 0 |
+
+---
+
+## Claim Severity Analysis
+
+| Metric | Value |
+|---|---|
+| Policies with claims | 2,788 |
+| Mean claim | R23,273 |
+| Median claim | R6,140 |
+| Maximum claim | R393,092 |
+| Skewness | 3.85 |
+
+The claim severity distribution is heavily right-skewed,
+justifying the use of log transformation.
+
+---
+
+## Class Imbalance
+
+| Metric | Value |
+|---|---|
+| Claim rate | 0.2788% |
+| Imbalance ratio | 358:1 |
+
+The dataset is extremely imbalanced, making accuracy an unreliable metric.
+Special imbalance handling techniques were required during classification.
+
+---
+
+## Classification Modeling
+
+### Models Evaluated
+
+| Model |
+|---|
+| Logistic Regression |
+| Random Forest |
+| XGBoost |
+
+### Classification Results
+
+| Model | Accuracy | Recall | AUC |
+|---|---|---|---|
+| XGBoost | 0.8455 | 0.9068 | 0.9249 |
+| Logistic Regression | 0.7894 | 0.7724 | 0.8554 |
+| Random Forest | 0.9706 | 0.1935 | 0.6226 |
+
+### Classification Insight
+
+XGBoost achieved the strongest overall performance with excellent claim
+detection capability and strong ranking power across high-risk policies.
+
+---
+
+## Regression Modeling
+
+### Models Evaluated
+
+| Model |
+|---|
+| Linear Regression |
+| Decision Tree |
+| Random Forest |
+| XGBoost |
+
+### Regression Results
+
+| Model | RMSE | R² |
+|---|---|---|
+| Tuned Random Forest | R36,318.57 | 0.6510 |
+| XGBoost | R36,521.75 | 0.6267 |
+| Linear Regression | R36,548.12 | 0.6259 |
+| Decision Tree | R44,451.72 | 0.4938 |
+
+### Regression Insight
+
+The tuned Random Forest model delivered the strongest overall regression
+performance while maintaining good generalization stability.
+
+---
+
+## Cross-Validation Results
+
+| Model | CV R² |
+|---|---|
+| XGBoost | 0.6528 ± 0.0156 |
+| Random Forest | 0.6317 ± 0.0262 |
+| Decision Tree | 0.5696 ± 0.0303 |
+
+XGBoost demonstrated the most stable generalization performance across folds.
+
+---
+
+## Hyperparameter Tuning
+
+### Best Random Forest Parameters
+
+```python
+{
+    'bootstrap': True,
+    'max_depth': 10,
+    'min_samples_leaf': 2,
+    'min_samples_split': 5,
+    'n_estimators': 200
+}
+```
+
+### Tuning Impact
+
+| Metric | Untuned RF | Tuned RF |
+|---|---|---|
+| RMSE | R36,243.45 | R36,318.57 |
+| R² | 0.6166 | 0.6510 |
+
+The tuned model improved generalization while reducing overfitting.
+
+---
+
+## Final Business Recommendations
+
+### Pricing Strategy
+
+- Reprice high-risk provinces
+- Adjust Heavy Commercial vehicle premiums
+- Incorporate predicted claim probability into pricing
+
+### Marketing Strategy
+
+- Target profitable low-risk customer segments
+- Expand acquisition in low-loss regions
+- Improve retention for profitable customers
+
+### Operational Strategy
+
+- Monitor extreme claims separately
+- Retrain models periodically
+- Continue collecting richer behavioral data
+
+---
+
+## Future Improvements
+
+Potential next steps include:
+
+- SMOTE imbalance handling
+- SHAP explainability analysis
+- Probability calibration
+- Time-series trend modeling
+- API deployment for real-time scoring
+
+---
+
+## Branch Strategy
 
 | Branch | Purpose |
 |---|---|
-| `main` | Stable, production-ready code |
+| `main` | Stable production-ready code |
 | `task-1` | EDA and project setup |
-| `task-2` | Data Version Control (DVC) |
-| `task-3` | A/B Hypothesis Testing |
-| `task-4` | Statistical Modeling |
-
+| `task-2` | DVC implementation |
+| `task-3` | Hypothesis testing |
+| `task-4` | Predictive modeling |
 
